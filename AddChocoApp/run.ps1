@@ -5,7 +5,7 @@ param($Request, $TriggerMetadata)
 
 $APIName = $TriggerMetadata.FunctionName
 Write-LogMessage -user $request.headers.'x-ms-client-principal' -API $APINAME  -message "Accessed this API" -Sev "Debug"
-
+Set-Location (Get-Item $PSScriptRoot).Parent.FullName
 
 Write-Host "PowerShell HTTP trigger function processed a request."
 $ChocoApp = $request.body
@@ -39,7 +39,7 @@ $Results = foreach ($Tenant in $tenants) {
             RowKey       = "$((New-Guid).GUID)"
             PartitionKey = "apps"
         }
-        "Succesfully added Choco App for $($Tenant) to queue."
+        "Successfully added Choco App for $($Tenant) to queue."
         Write-LogMessage -user $request.headers.'x-ms-client-principal' -API $APINAME -tenant $tenant -message "Chocolatey Application $($intunebody.Displayname) queued to add" -Sev "Info"
     }
     catch {

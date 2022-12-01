@@ -10,7 +10,7 @@ Write-LogMessage -user $request.headers.'x-ms-client-principal' -API $APINAME -m
 
 # Clear Cache
 if ($request.Query.ClearCache -eq 'true') {
-    Remove-CIPPCache
+    Remove-CIPPCache -tenantsOnly $request.query.TenantsOnly
     $GraphRequest = [pscustomobject]@{'Results' = 'Successfully completed request.' }
     Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
             StatusCode = [HttpStatusCode]::OK
@@ -21,7 +21,7 @@ if ($request.Query.ClearCache -eq 'true') {
 
 try {
     $tenantfilter = $Request.Query.TenantFilter
-    $Tenants = Get-Tenants
+    $Tenants = Get-Tenants -IncludeErrors
 
     if ($null -eq $TenantFilter -or $TenantFilter -eq 'null') {
         $TenantList = [system.collections.generic.list[object]]::new()
@@ -31,12 +31,13 @@ try {
                     defaultDomainName = 'AllTenants'
                     displayName       = '*All Tenants'
                     domains           = 'AllTenants'
+                    GraphErrorCount   = 0
                 }) | Out-Null
 
-            if (($Tenants | Measure-Object).Count -gt 1) {
+            if (($Tenants).length -gt 1) {
                 $TenantList.AddRange($Tenants) | Out-Null
             }
-            else {
+            elseif ($Tenants) {
                 $TenantList.Add($Tenants) | Out-Null
             }
             $body = $TenantList
